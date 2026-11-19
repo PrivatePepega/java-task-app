@@ -2,18 +2,20 @@ package com.example.demo.controller;
 
 
 import com.example.demo.domain.CreateTaskRequest;
+import com.example.demo.domain.UpdateTaskRequest;
 import com.example.demo.domain.dto.CreateTaskRequestDto;
 import com.example.demo.domain.dto.TaskDto;
+import com.example.demo.domain.dto.UpdateTaskRequestDto;
 import com.example.demo.domain.entity.Task;
 import com.example.demo.domain.mapper.TaskMapper;
 import com.example.demo.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "/api/v1/tasks")
@@ -35,6 +37,24 @@ public class TaskController {
         Task task = taskService.createTask(createTaskRequest);
         TaskDto createdTaskDto = taskMapper.toDto(task);
         return new ResponseEntity<>(createdTaskDto, HttpStatus.CREATED);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TaskDto>> listTasks(){
+        List<Task> tasks = taskService.listTasks();
+        List<TaskDto> taskDtos = tasks.stream().map(taskMapper::toDto).toList();
+        return ResponseEntity.ok(taskDtos);
+    };
+
+    @PutMapping(path = "/{taskId}")
+    public ResponseEntity<TaskDto> updateTask(
+            @PathVariable UUID taskId,
+            @Valid @RequestBody UpdateTaskRequestDto updateTaskRequestDto
+    ) {
+        UpdateTaskRequest updateTaskRequest = taskMapper.fromDto(updateTaskRequestDto);
+        Task task = taskService.updateTask(taskId, updateTaskRequest);
+        TaskDto taskDto = taskMapper.toDto(task);
+        return ResponseEntity.ok(taskDto);
     }
 
 }
